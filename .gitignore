@@ -1,0 +1,9 @@
+
+logs/*
+.env
+*.wav
+*.pyc
+__pycache__/
+*.bin
+.venv/*
+TODO.txt
