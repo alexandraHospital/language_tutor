@@ -89,7 +89,7 @@ http://localhost:11434
 ```
 
 ### 3. Choose your favorite LLM
-Depending on your machine's hardware capabilities, you can choose either a lightweigted model lower resource usage and a larger model for better performance.
+Depending on your machine's hardware capabilities, you can choose either a lightweigted model for a lower resource usage and a larger model for better performance.
 
 Models can be downloaded with:
 
