@@ -89,7 +89,7 @@ http://localhost:11434
 ```
 
 ### 3. Choose your favorite LLM
-Depending on your machine's hardware capabilities, you can choose either a lightweigted model for a lower resource usage and a larger model for better performance.
+Depending on your machine's hardware capabilities, you can choose either a lightweigted model for lower resource usage and a larger model for better performance.
 
 Models can be downloaded with:
 
@@ -113,7 +113,7 @@ When using an external provider, **your data is no longer processed exclusively 
 
 :warning: **Make sure you review the provider's terms and privacy policy before using an external API, especially if you are sending sensitive or personal information.** :warning:
 
-Using an external API provider is configured through a `.env` file and a command-line option. See the **`Environement variables`** and **Usage** sections for more details.
+Using an external API provider is configured through a `.env` file and a command-line option. See the **Environement variables** and **Usage** sections for more details.
 
 
 ## Piper
