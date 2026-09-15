@@ -1,0 +1,12 @@
+# local LLM:
+ollama
+
+# env
+dotenv
+
+# LLM API:
+mistralai
+openai
+
+# Voice
+piper-tts
