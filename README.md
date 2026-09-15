@@ -1,5 +1,6 @@
 # Language Tutor
 Language Tutor is an AI-powered open-source application for practicing speaking foreign languages. Designed with privacy in mind, it keeps user data local and does not send it to external services. It uses lightweight models that can run either CPU-only or on a GPU, depending on the user's setup.
+
 Language Tutor can provide a feedback stored in a markdown file.
 
 ## Setting environment
@@ -103,13 +104,14 @@ ollama list
 ```
 
 ## Using an external API
+
 The application can also be configured to use an external LLM API instead of a local model.
 
 For example, you can connect it to providers such as Mistral AI or OpenAI, depending on the API implementation you choose.
 
 When using an external provider, **your data is no longer processed exclusively on your local machine**. Any data sent to the provider is subject to the provider's own terms of service, privacy policy, data retention policies, and usage restrictions.
 
-**Make sure you review the provider's terms and privacy policy before using an external API, especially if you are sending sensitive or personal information.**
+:warning: **Make sure you review the provider's terms and privacy policy before using an external API, especially if you are sending sensitive or personal information.** :warning:
 
 Using an external API provider is configured through a `.env` file and a command-line option. See the **`Environement variables`** and **Usage** sections for more details.
 
@@ -120,7 +122,6 @@ Using an external API provider is configured through a `.env` file and a command
 
 ## Environement variables
 
-### Environment variables
 
 The application uses a `.env` file to configure the LLM provider and the Whisper model.
 

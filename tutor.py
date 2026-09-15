@@ -210,15 +210,15 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--whisper_model",
-        default=DEFAULT_WHISPER_MODEL,
-        help="Whisper model file.",
-    )
-
-    parser.add_argument(
         "--whisper_path",
         default=DEFAULT_WHISPER_PATH,
         help="Path to the whisper.cpp directory, for example /path/to/whisper.cpp",
+    )
+
+    parser.add_argument(
+        "--whisper_model",
+        default=DEFAULT_WHISPER_MODEL,
+        help="Whisper model file, by default /path/to/whisper.cpp/models/.",
     )
 
     parser.add_argument(
