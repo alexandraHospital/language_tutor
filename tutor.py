@@ -96,59 +96,6 @@ Be encouraging and constructive.
 Do not invent mistakes that are not present in the transcript.
 """
 
-
-JOB_INTERVIEW_PROMPT= """
-You are a technical hiring manager or senior engineer from a company. 
-They are friendly but rigorous, and will ask a mix of technical, behavioral, and problem-solving questions.
-They will ask about the past experience of the candidate, and also the ability to be in the future position.
-Language: Strictly English (the interviewer will correct grammar mistakes ONLY if it's necessary to understand the meaning of something).
-"""
-
-FEEDBACK_JOB_ITW_SYSTEM_PROMPT = """
-You are an {%language%} teacher analyzing a learner's spoken {%language%} conversation durin a job interview.
-
-The learner has just finished an {%language%} job interview.
-
-Analyze ONLY what the learner said. Do not criticize the assistant's messages.
-
-Provide the feedback in {%language%}.
-
-Your feedback should contain these sections:
-
-1. Overall assessment
-Give a short assessment of the learner's {%language%}.
-
-2. What was done well
-Mention concrete positive aspects of the learner's {%language%}, such as:
-- vocabulary
-- grammar
-- fluency
-- ability to express ideas
-- natural expressions
-- communication strategies
-
-3. Mistakes and corrections
-For each important mistake:
-- Quote the learner's original sentence.
-- Give a corrected version.
-- Briefly explain the mistake.
-
-Focus on recurring or meaningful mistakes rather than correcting every tiny issue.
-
-4. More natural {%language%}
-Identify expressions that were understandable but could sound more natural.
-Give a more natural alternative.
-
-5. Vocabulary
-Suggest a few useful words or expressions that would help the learner express the ideas they discussed, or to vary when the same words are repeated.
-
-6. Priority for improvement
-Give the learner 2 or 3 concrete things to focus on during the next session.
-
-Be encouraging and constructive.
-Do not invent mistakes that are not present in the transcript.
-"""
-
     
 # --- Styles ---
 RESET = "\033[0m"
@@ -547,9 +494,9 @@ def main():
     args = parse_args()
     
     language_name = LANGUAGE_MAP[args.language]
-    final_prompt = JOB_INTERVIEW_PROMPT.replace("{%language%}", language_name)
+    final_prompt = TUTOR_SYSTEM_PROMPT.replace("{%language%}", language_name)
     
-    final_feedback_prompt = FEEDBACK_JOB_ITW_SYSTEM_PROMPT.replace("{%language%}", language_name)
+    final_feedback_prompt = FEEDBACK_SYSTEM_PROMPT.replace("{%language%}", language_name)
 
     print(f"{language_name} Tutor")
     print("=" * 60)
@@ -646,14 +593,14 @@ def main():
 
                 print()
                 
-                if args.voice:
-                    # voice = PiperVoice.load(f"{DEFAULT_PIPER_PATH}/en_GB-northern_english_male-medium.onnx")
+#                 if args.voice:
+#                     # voice = PiperVoice.load(f"{DEFAULT_PIPER_PATH}/en_GB-northern_english_male-medium.onnx")
 
-                    piper = PiperVoice(model_path=f"{DEFAULT_PIPER_PATH}/en_GB-northern_english_male-medium.onnx")
-                    piper.synthesize_to_file(
-                        text="Hello, I'm a synthetizer.",
-                        output_file="temp.wav"
-)
+#                     piper = PiperVoice(model_path=f"{DEFAULT_PIPER_PATH}/en_GB-northern_english_male-medium.onnx")
+#                     piper.synthesize_to_file(
+#                         text="Hello, I'm a synthetizer.",
+#                         output_file="temp.wav"
+# )
 
             finally:
                 try:
