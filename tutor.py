@@ -24,6 +24,8 @@ DEFAULT_WHISPER_MODEL = "ggml-tiny.bin"
 DEFAULT_PIPER_PATH = "/home/alex/Documents/python_projects/piper"
 DEFAULT_LOGS_DIR = "./logs"
 DEFAULT_ENV_PATH = "./.env"
+DEFAULT_TUTOR_PROMPT_PATH = "./tutor_system_prompt.txt"
+DEFAULT_FEEDBACK_PROMPT_PATH = "./feedback_system_prompt.txt"
 
 LANGUAGE_MAP = {
     "fr": "French",
@@ -34,68 +36,6 @@ LANGUAGE_MAP = {
     "pt": "Portuguese",
 }
 
-TUTOR_SYSTEM_PROMPT = """
-You are an {%language%} conversation partner helping a learner practice {%language%}.
-
-Your role is to have a natural conversation in {%language%}.
-
-Rules:
-- Always answer in {%language%}.
-- Behave like a real conversation partner, not like a teacher.
-- Keep your answers relatively concise and natural.
-- Ask follow-up questions when appropriate.
-- Do not correct every mistake during the conversation.
-- Do not interrupt the flow of the conversation with grammar explanations.
-- Encourage the learner to speak and express ideas.
-- If the learner makes a serious mistake that prevents understanding, you may briefly clarify it.
-- The learner's talk is transcipted with Whisper, so transcription errors could happen.
-"""
-
-
-FEEDBACK_SYSTEM_PROMPT = """
-You are an {%language%} teacher analyzing a learner's spoken {%language%} conversation.
-
-The learner has just finished an {%language%} practice session.
-
-Analyze ONLY what the learner said. Do not criticize the assistant's messages.
-
-Provide the feedback in {%language%}.
-
-Your feedback should contain these sections:
-
-1. Overall assessment
-Give a short assessment of the learner's {%language%}.
-
-2. What was done well
-Mention concrete positive aspects of the learner's {%language%}, such as:
-- vocabulary
-- grammar
-- fluency
-- ability to express ideas
-- natural expressions
-- communication strategies
-
-3. Mistakes and corrections
-For each important mistake:
-- Quote the learner's original sentence.
-- Give a corrected version.
-- Briefly explain the mistake.
-
-Focus on recurring or meaningful mistakes rather than correcting every tiny issue.
-
-4. More natural {%language%}
-Identify expressions that were understandable but could sound more natural.
-Give a more natural alternative.
-
-5. Vocabulary
-Suggest a few useful words or expressions that would help the learner express the ideas they discussed, or to vary when the same words are repeated.
-
-6. Priority for improvement
-Give the learner 2 or 3 concrete things to focus on during the next session.
-
-Be encouraging and constructive.
-Do not invent mistakes that are not present in the transcript.
-"""
 
     
 # --- Styles ---
@@ -130,6 +70,15 @@ LIGHT_CYAN = "\033[96m"
 LIGHT_WHITE = "\033[97m"
 
 API_LIST = ["mistral", "openai", "ollama", "opencode"] #TODO add hugging face
+
+def load_prompt(path, name):
+    try:
+        return Path(path).read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"{name} file not found: {path}\n"
+            f"Provide it or use --tutor_prompt / --feedback_prompt."
+        )
 
 def parse_args():
     DEFAULT_WHISPER_PATH = os.getenv("DEFAULT_WHISPER_PATH", "./models/whisper.cpp")
@@ -174,6 +123,18 @@ def parse_args():
         default="en",
         choices=list(LANGUAGE_MAP.keys()),
         help="Language for transcription (e.g., 'en' for English, 'fr' for French).",
+    )
+
+    parser.add_argument(
+        "--tutor_prompt",
+        default=DEFAULT_TUTOR_PROMPT_PATH,
+        help=f"Path to the tutor system prompt file (default: '{DEFAULT_TUTOR_PROMPT_PATH}').",
+    )
+
+    parser.add_argument(
+        "--feedback_prompt",
+        default=DEFAULT_FEEDBACK_PROMPT_PATH,
+        help=f"Path to the feedback system prompt file (default: '{DEFAULT_FEEDBACK_PROMPT_PATH}').",
     )
 
     # parser.add_argument(
@@ -510,9 +471,12 @@ def main():
     args = parse_args()
     
     language_name = LANGUAGE_MAP[args.language]
-    final_prompt = TUTOR_SYSTEM_PROMPT.replace("{%language%}", language_name)
-    
-    final_feedback_prompt = FEEDBACK_SYSTEM_PROMPT.replace("{%language%}", language_name)
+
+    tutor_prompt = load_prompt(args.tutor_prompt, "Tutor system prompt")
+    feedback_prompt = load_prompt(args.feedback_prompt, "Feedback system prompt")
+
+    final_prompt = tutor_prompt.replace("{%language%}", language_name)
+    final_feedback_prompt = feedback_prompt.replace("{%language%}", language_name)
 
     print(f"{language_name} Tutor")
     print("=" * 60)
@@ -523,10 +487,19 @@ def main():
     print()
 
     try:
+        # Get prompts
+        tutor_prompt = load_prompt(args.tutor_prompt, "Tutor system prompt")
+        feedback_prompt = load_prompt(args.feedback_prompt, "Feedback system prompt")
+        final_prompt = tutor_prompt.replace("{%language%}", language_name)
+        final_feedback_prompt = feedback_prompt.replace("{%language%}", language_name)
+
+        # Initialize logger
         logger = ConversationLogger(args.logs_dir, language_name)
 
+        # Initialize recorder
         recorder = AudioRecorder(args.device)
 
+        # Initialize Whisper
         transcriber = WhisperTranscriber(
             whisper_path=args.whisper_path,
             whisper_model=args.whisper_model,
@@ -535,6 +508,7 @@ def main():
             high_quality=args.high_quality,
         )
 
+        
         tutor = EnglishTutor(args.api, args.model, final_prompt, final_feedback_prompt)
 
     except Exception as error:
