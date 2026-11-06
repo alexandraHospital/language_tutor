@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from pathlib import Path
 
 from ollama import chat
@@ -128,7 +129,7 @@ LIGHT_MAGENTA = "\033[95m"
 LIGHT_CYAN = "\033[96m"
 LIGHT_WHITE = "\033[97m"
 
-API_LIST = ["mistral", "openai", "ollama"] #TODO add hugging face
+API_LIST = ["mistral", "openai", "ollama", "opencode"] #TODO add hugging face
 
 def parse_args():
     DEFAULT_WHISPER_PATH = os.getenv("DEFAULT_WHISPER_PATH", "./models/whisper.cpp")
@@ -402,10 +403,17 @@ class EnglishTutor:
             )
 
 
-        if self.api == "ollama" or self.api == "openai":
+        if self.api in ("ollama", "openai", "opencode"):
+            if self.api == "opencode":
+                default_headers = {"x-opencode-session": str(uuid.uuid4())}
+            else:
+                default_headers = None
+
             self.client = OpenAI(
-                api_key = "ollama" if self.api == "ollama" else api_key,
-                base_url = base_url)
+                api_key="ollama" if self.api == "ollama" else api_key,
+                base_url=base_url,
+                default_headers=default_headers,
+            )
 
             self.messages = [
                 {
@@ -424,7 +432,6 @@ class EnglishTutor:
             ]
         
         # TODO: add other API
-        # TODO: ollama
 
     def chat(self, user_text):
         self.messages.append(
@@ -433,7 +440,12 @@ class EnglishTutor:
                 "content": user_text,
             }
         )
-        if self.api == "ollama" or self.api == "openai":
+        
+        if self.api in ("ollama", "openai", "opencode"):
+            if self.api == "opencode":
+                default_headers = {"x-opencode-session": str(uuid.uuid4())}
+            else:
+                default_headers = None
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=self.messages,
@@ -470,7 +482,11 @@ class EnglishTutor:
             },
         ]
 
-        if self.api == "ollama" or self.api == "openai":
+        if self.api in ("ollama", "openai", "opencode"):
+            if self.api == "opencode":
+                default_headers = {"x-opencode-session": str(uuid.uuid4())}
+            else:
+                default_headers = None
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
