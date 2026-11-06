@@ -177,37 +177,39 @@ class ConversationLogger:
         self.logs_dir.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.path = self.logs_dir / f"session_{timestamp}.md"
+        self.conversation_path = self.logs_dir / f"session_{timestamp}_conversation.md"
+        self.feedback_path = self.logs_dir / f"session_{timestamp}_feedback.md"
         self.language_name = language_name
-        self._write_header()
+        self._write_header(
+            self.conversation_path,
+            f"{self.language_name} Tutor Session - Conversation",
+        )
+        self._write_header(
+            self.feedback_path,
+            f"{self.language_name} Tutor Session - Feedback",
+        )
 
-    def _write_header(self):
-        with self.path.open("w", encoding="utf-8") as file:
-            file.write(f"{self.language_name} Tutor Session\n")
+    def _write_header(self, path, title):
+        with path.open("w", encoding="utf-8") as file:
+            file.write(f"{title}\n")
             file.write("=" * 60 + "\n")
             file.write(
-                datetime.datetime.now().strftime(
-                    "Started: %Y-%m-%d %H:%M:%S\n"
-                )
+                datetime.datetime.now().strftime("Started: %Y-%m-%d %H:%M:%S\n")
             )
             file.write("\n")
 
+    def _append(self, path, text):
+        with path.open("a", encoding="utf-8") as file:
+            file.write(text)
+
     def write_user(self, text):
-        with self.path.open("a", encoding="utf-8") as file:
-            file.write(f"<u>You:</u> {text}\n")
+        self._append(self.conversation_path, f"<u>You:</u> {text}\n\n")
 
     def write_tutor(self, text):
-        with self.path.open("a", encoding="utf-8") as file:
-            file.write(f"<u>Tutor:</u> {text}\n\n")
+        self._append(self.conversation_path, f"<u>Tutor:</u> {text}\n\n")
 
     def write_feedback(self, feedback):
-        with self.path.open("a", encoding="utf-8") as file:
-            file.write("\n")
-            file.write("=" * 60 + "\n")
-            file.write("FEEDBACK\n")
-            file.write("=" * 60 + "\n\n")
-            file.write(feedback)
-            file.write("\n")
+        self._append(self.feedback_path, feedback + "\n")
 
 
 class AudioRecorder:
@@ -472,12 +474,6 @@ def main():
     
     language_name = LANGUAGE_MAP[args.language]
 
-    tutor_prompt = load_prompt(args.tutor_prompt, "Tutor system prompt")
-    feedback_prompt = load_prompt(args.feedback_prompt, "Feedback system prompt")
-
-    final_prompt = tutor_prompt.replace("{%language%}", language_name)
-    final_feedback_prompt = feedback_prompt.replace("{%language%}", language_name)
-
     print(f"{language_name} Tutor")
     print("=" * 60)
     print(f"LLM API: {args.api}")
@@ -535,7 +531,7 @@ def main():
                 print()
                 print("Generating feedback...")
 
-                conversation = build_conversation_text(logger.path)
+                conversation = build_conversation_text(logger.conversation_path)
                 feedback = tutor.feedback(conversation)
 
                 print()
