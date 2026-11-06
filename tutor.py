@@ -396,6 +396,26 @@ class EnglishTutor:
         
         # TODO: add other API
 
+    def test_connection(self):
+        """Send a minimal request to check the model is reachable."""
+        messages = [
+            {"role": "user", "content": "Reply with exactly: OK"},
+        ]
+
+        if self.api in ("ollama", "openai", "opencode"):
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+            )
+        elif self.api == "mistral":
+            response = self.client.chat.complete(
+                model=self.model,
+                messages=messages,
+            )
+
+        if not response.choices[0].message.content:
+            raise RuntimeError("Model returned an empty response.")
+
     def chat(self, user_text):
         self.messages.append(
             {
@@ -467,6 +487,25 @@ class EnglishTutor:
 def build_conversation_text(log_path):
     return log_path.read_text(encoding="utf-8")
 
+def print_banner():
+    banner = r"""
+     _                                        
+    | |                                       
+    | |     __ _ _ __   __ _  __ _  __ _  ___ 
+    | |    / _` | '_ \ / _` |/ _` |/ _` |/ _ \
+    | |___| (_| | | | | (_| | (_| | (_| |  __/
+    \_____/\__,_|_| |_|\__, |\__,_|\__, |\___|
+                        __/ |       __/ |     
+                       |___/       |___/      
+       _____     _                              
+      |_   _|   | |                             
+        | |_   _| |_ ___  _ __                  
+        | | | | | __/ _ \| '__|                 
+        | | |_| | || (_) | |                    
+        \_/\__,_|\__\___/|_|               v1.0              
+                                          
+    """
+    print(f"{BOLD}{LIGHT_MAGENTA}{banner}{RESET}")
 
 def main():
     load_dotenv(DEFAULT_ENV_PATH)
@@ -474,12 +513,15 @@ def main():
     
     language_name = LANGUAGE_MAP[args.language]
 
-    print(f"{language_name} Tutor")
-    print("=" * 60)
-    print(f"LLM API: {args.api}")
-    print(f"BASE URL: {os.getenv("BASE_URL")}")
-    print(f"LLM model: {args.model}")
-    print(f"Whisper model: {args.whisper_model}")
+    print_banner()
+
+    print(f"{BOLD}{LIGHT_MAGENTA}{language_name}{RESET}")
+    print(f"{DIM}─" + "─" * 58 + f"{RESET}")
+    print(f"  {DIM}LLM API:{RESET}      {args.api}")
+    print(f"  {DIM}BASE URL:{RESET}     {os.getenv('BASE_URL')}")
+    print(f"  {DIM}LLM model:{RESET}    {args.model}")
+    print(f"  {DIM}Whisper:{RESET}      {args.whisper_model}")
+    print(f"{DIM}─" + "─" * 58 + f"{RESET}")
     print()
 
     try:
@@ -488,6 +530,12 @@ def main():
         feedback_prompt = load_prompt(args.feedback_prompt, "Feedback system prompt")
         final_prompt = tutor_prompt.replace("{%language%}", language_name)
         final_feedback_prompt = feedback_prompt.replace("{%language%}", language_name)
+
+        tutor = EnglishTutor(args.api, args.model, final_prompt, final_feedback_prompt)
+
+        # Test if model is available
+        print("Testing LLM connection...")
+        tutor.test_connection()
 
         # Initialize logger
         logger = ConversationLogger(args.logs_dir, language_name)
@@ -504,19 +552,19 @@ def main():
             high_quality=args.high_quality,
         )
 
-        
-        tutor = EnglishTutor(args.api, args.model, final_prompt, final_feedback_prompt)
 
     except Exception as error:
         print(f"Initialization error: {error}")
         sys.exit(1)
 
-    print("Ready.")
     print()
-    print(f"Speak {language_name} into your microphone.")
-    print(f"Type /feedback to get feedback on your {language_name}.")
-    # print(f"Type /voice to enable or disable reading out loud.") # TODO
-    print("Type /quit to end the session.")
+    print(f"{REVERSE}{BOLD} Ready! ", end=f"{RESET}")
+    print()
+    print()
+    print(f"{BOLD}Speak {LIGHT_MAGENTA}{language_name}{RESET}{BOLD} into your microphone.{RESET}")
+    print(f"  {CYAN}/feedback{RESET}  get feedback on your {language_name}")
+    # print(f"  {CYAN}/voice to enable or disable reading out loud.") # TODO
+    print(f"  {CYAN}/quit{RESET}      end the session")
     print()
 
     while True:
