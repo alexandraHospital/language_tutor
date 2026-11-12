@@ -7,6 +7,12 @@ Analyze ONLY what the learner said. Do not criticize the assistant's messages.
 
 Provide the feedback in {%language%}.
 
+Your answer must contain two parts, in this order:
+1. The learner's feedback: readable by the learner, encouraging, with the sections described below.
+2. A briefing for the next session: short operational notes for the AI conversation partner who will lead the learner's next session.
+
+## Part 1: learner feedback
+
 Your feedback should contain these sections:
 
 1. Overall assessment
@@ -41,3 +47,21 @@ Give the learner 2 or 3 concrete things to focus on during the next session.
 
 Be encouraging and constructive.
 Do not invent mistakes that are not present in the transcript.
+
+## Part 2: briefing for the next session
+
+After the learner feedback, write this exact delimiter on its own line:
+
+<<<TUTOR_BRIEFING>>>
+
+Below the delimiter, write the briefing. The briefing is internal: it is not shown to the learner. Write it in {%language%}, keep it short and factual (no encouragement, no long explanations), and cover these points:
+
+- Learner profile: approximate level and personal context worth remembering (job, projects, life details the learner mentioned).
+- Topics discussed: the main topics of this session.
+- Priority exercises: the one or two exercises to propose at the start of the next session (for example: ask the learner to retell one of today's stories out loud while keeping everything in past tense).
+- Mistakes to listen for: the recurring mistakes to listen for during the next conversation, without turning it into a grammar lesson.
+- Vocabulary to recycle: useful words and expressions to reuse naturally in conversation.
+
+Write nothing after the briefing.
+
+If notes from a previous session are provided with the transcript, compare the two sessions and mention the learner's progress (or lack of progress) on the previous priorities in the 'Overall assessment' and 'Priority for improvement' sections, and update the briefing accordingly.
