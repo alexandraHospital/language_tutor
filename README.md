@@ -135,25 +135,79 @@ The application uses a `.env` file to configure the LLM provider and the Whisper
 ## Usage
 ```bash
 python3 tutor.py --help
-usage: tutor.py [-h] [--api {mistral,openai,ollama}] [--model MODEL] [--device DEVICE] [--whisper_model WHISPER_MODEL] [--whisper_path WHISPER_PATH] [--language {fr,en,es,de,it,pt}]
+usage: tutor.py [-h] [--api {mistral,openai,ollama,opencode}] [--model MODEL] [--device DEVICE] [--whisper_path WHISPER_PATH] [--whisper_model WHISPER_MODEL]
+                [--language {fr,en,es,de,it,pt}] [--tutor_prompt TUTOR_PROMPT] [--feedback_prompt FEEDBACK_PROMPT] [--followup] [--feedback_file FEEDBACK_FILE]
                 [--threads THREADS] [--logs_dir LOGS_DIR] [--high_quality]
 
 Practice speaking a language with a local Whisper model and AI.
 
 options:
   -h, --help            show this help message and exit
-  --api {mistral,openai,ollama}
+  --api {mistral,openai,ollama,opencode}
                         LLM API
   --model MODEL         Name of the LLM model to use (e.g., 'qwen3.5:2b', 'open-mistral-7b', llama3.2:3b). Check if model is available on the API (ollama or external) you use on
                         "api" option.
   --device DEVICE       ALSA audio device for capture (e.g., 'plughw:0,7'). Use 'arecord -l' to list devices.
-  --whisper_model WHISPER_MODEL
-                        Whisper model file.
   --whisper_path WHISPER_PATH
                         Path to the whisper.cpp directory, for example /path/to/whisper.cpp
+  --whisper_model WHISPER_MODEL
+                        Whisper model file.
   --language {fr,en,es,de,it,pt}
-                        Language for transcription (e.g., 'en' for English, 'fr' for French).
+                        Language for transcription ('en' for English, 'fr' for French, 'es' for Spanish, 'de' for German, 'it' for Italian, 'pt' for Portuguese).
+  --tutor_prompt TUTOR_PROMPT
+                        Path to the tutor system prompt file (default: './tutor_system_prompt.txt').
+  --feedback_prompt FEEDBACK_PROMPT
+                        Path to the feedback system prompt file (default: './feedback_system_prompt.txt').
+  --followup            Follow up on the most recent briefing for this language: the tutor remembers previous topics and suggests the previous priority exercises.
+  --briefing_file BRIEFING_FILE
+                        Path to a specific briefing file to follow up on (overrides --followup lookup).
   --threads THREADS     Number of CPU threads to use for Whisper.
-  --logs_dir LOGS_DIR   Directory to save conversation logs (default: './logs').
+  --logs_dir LOGS_DIR   Root directory for session logs, stored per language in <logs_dir>/<language> (default: './logs').
   --high_quality        Enable high-quality mode (slower but more accurate transcription).
-  ```
+```
+
+### Following up on a previous session
+
+When the learner asks for feedback, the session produces two files: the readable feedback (`session_..._feedback.md`) and a briefing (`session_..._briefing.md`), a short machine-oriented file written for the AI conversation partner of the next session.
+
+Session logs are stored per language in `<logs_dir>/<language>/` (for example `./logs/en/` for English), so sessions in different languages never mix.
+
+To let the tutor continue where the previous session ended, start it with `--followup`:
+
+```bash
+python3 tutor.py --followup
+```
+
+The tutor loads the most recent non-empty briefing for the current language and uses it as background memory: it naturally refers to previously discussed topics, remembers the learner's personal context, and proposes the previous priority exercises (for example: retelling a story while keeping everything in past tense).
+
+To follow up from a specific briefing file instead of the latest one:
+
+```bash
+python3 tutor.py --briefing_file logs/en/session_20261110_141253_briefing.md
+```
+
+When a follow-up is active, the feedback generated at the end of the session also compares the learner's progress with the previous session's priorities.
+
+If no briefing exists yet (for example, sessions recorded before this feature), the tutor warns and simply starts a fresh session, as if it were launched without `--followup`. The first briefing is created the first time `/feedback` is run.
+
+:warning: **This feature is meant to be used with capable LLMs.** The briefing is generated in the same call as the feedback and must be separated from it by a strict delimiter, and the follow-up conversation relies on the model staying a natural conversation partner while using the previous session's notes. Small models (e.g., llama3.2:3b) may omit the delimiter — the briefing is then not saved and a warning is displayed, so simply run `/feedback` again — or produce low-quality briefings and clumsy follow-ups. Prefer a larger model (e.g., `qwen3.5`, `open-mistral-7b`, `llama3.1:8b`) when using `--followup` or `--briefing_file`. :warning:
+
+## Tests
+
+The test suite uses pytest, and the heavy application dependencies (ollama, mistralai, openai, piper) are stubbed in `tests/conftest.py`, so only pytest itself is needed:
+
+```bash
+pip install pytest
+pytest -q
+```
+
+## Code quality
+
+The project uses [ruff](https://docs.astral.sh/ruff/) for linting and formatting, configured in `pyproject.toml`. Both checks must pass before every commit:
+
+```bash
+ruff check .
+ruff format --check .
+```
+
+`ruff format .` applies the formatting, and `ruff check --fix .` fixes the automatically fixable lint errors.
