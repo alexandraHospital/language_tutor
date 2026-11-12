@@ -10,3 +10,9 @@ openai
 
 # Voice
 piper-tts
+
+# Tests
+pytest
+
+# Code quality
+ruff

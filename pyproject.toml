@@ -1,0 +1,18 @@
+# Ruff configuration (https://docs.astral.sh/ruff/configuration/).
+# `ruff check .` and `ruff format --check .` must pass before every commit.
+
+[tool.ruff]
+target-version = "py312"
+
+# whisper.cpp is cloned under models/ and session logs live in logs/:
+# neither belongs to the linted sources.
+exclude = ["models", "logs"]
+
+[tool.ruff.lint]
+select = [
+    "E4", "E7", "E9", # pycodestyle subset
+    "F", # pyflakes: unused imports and variables
+    "I", # import sorting
+    "BLE", # blind except must be justified with a noqa
+    "EXE", # shebang and executable-bit hygiene
+]
